@@ -1,113 +1,175 @@
-import Image from 'next/image'
+'use client';
+
+import Image from 'next/image';
+import DemoImage from '@/assets/images/demoImage.jpg';
+import KiteImage from '@/assets/images/kiteImage.jpg';
+import BannerImage from '@/components/BannerImage/BannerImage';
+import FoodVideoImage from '@/assets/images/foodVideo.jpg';
+import { IoSearchOutline } from 'react-icons/io5';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
+import { useCallback, useState } from 'react';
+import { changeActiveCategory } from '@/redux/features/menuSlice';
+import FoodAccordion from '@/components/Accordion/FoodAccordion/FoodAccordion';
+import { SubCategory } from '@/utils/interface';
+import { IoCartOutline } from 'react-icons/io5';
+import { useInView } from 'react-intersection-observer';
+import { useRouter } from 'next/navigation';
+import WaiterModal from '@/components/Modal/WaiterModal/WaiterModal';
+import { PiNotepadLight } from 'react-icons/pi';
 
 export default function Home() {
+  const categories = useAppSelector((state) => state.menu.data.categories);
+  const cart = useAppSelector((state) => state.cart.cart);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  const { ref, inView } = useInView();
+
+  const [activeCategory, setActiveCategory] = useState<string>(categories[0]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const menuItems = useAppSelector((state) => state.menu.data.activeCategory);
+
+  const handleCategoryClick = (category: string) => {
+    setActiveCategory(category);
+    dispatch(changeActiveCategory(category));
+  };
+
+  const fileredMenuItems = useCallback(
+    (items: SubCategory[]) => {
+      if (searchTerm === '') return items;
+
+      return items
+        .map((item) => ({
+          ...item,
+          foodItems: item.foodItems.filter((foodItem) =>
+            foodItem.name.toLowerCase().includes(searchTerm.toLowerCase())
+          ),
+        }))
+        .filter((item) => item.foodItems.length > 0);
+    },
+    [searchTerm]
+  );
+
+  console.log(menuItems);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="flex justify-center h-screen">
+      <section className="w-full gap-2 flex-col max-w-[400px]  bg-white min-h-screen overflow-y-scroll hide-scrollbar flex justify-start items-center">
+        {!inView && (
+          <div className="flex sticky top-0 z-50 shadow-md items-center gap-2 justify-center w-full bg-orange-500">
+            <h1 className="text-white text-xl font-bold py-3 ">Try The Menu</h1>
+            <div
+              onClick={() => router.push('/cart')}
+              className="absolute cursor-pointer right-3 top-[50%] translate-y-[-50%] "
+            >
+              <span className="text-white relative text-2xl">
+                <IoCartOutline />
+                {cart.length > 0 && (
+                  <span className="absolute -right-2 -top-2 rounded-full bg-white text-black text-sm w-3 h-3 p-2  flex justify-center items-center">
+                    {cart.length || ''}
+                  </span>
+                )}
+              </span>
+            </div>
+          </div>
+        )}
+        <div className="w-full p-3 space-y-2  flex justify-start items-center flex-col">
+          <h1 className="text-gray-500">
+            Powered by <b>Try The Menu</b>
+          </h1>
+          <div
+            ref={ref}
+            className="p-2 gap-2 border-[1px] border-gray-500 rounded-md flex w-full"
           >
-            By{' '}
             <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
+              src={DemoImage}
+              alt="demo"
               width={100}
-              height={24}
-              priority
+              height={100}
+              objectFit="cover"
+              className="rounded-md"
             />
-          </a>
+            <div className="flex flex-col justify-center">
+              <h2 className="font-semibold text-gray-800 text-lg">
+                Try The Menu (Demo)
+              </h2>
+              <span className="text-gray-500 font-semibold text-sm">
+                22Baker Street
+              </span>
+              <span className="text-gray-500 text-sm ">Asian, Continental</span>
+            </div>
+          </div>
+          <BannerImage
+            heading="Visit Our"
+            subHeading="Food Social Media"
+            imageSrc={FoodVideoImage}
+          />
+          <BannerImage
+            heading="We wish you"
+            subHeading="All happy makar sankranti"
+            imageSrc={KiteImage}
+          />
+          <div className="text-center py-4 flex gap-2 items-center">
+            <PiNotepadLight className="text-xl" />
+            Menu
+          </div>
+          <div className="w-full relative">
+            <input
+              type="text"
+              placeholder="Search for food"
+              className="w-full bg-gray-300 rounded-md text-black p-2"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <IoSearchOutline className="text-xl absolute right-3 top-1/2 translate-y-[-50%]" />
+          </div>
+          <div className="w-full flex justify-start gap-2 flex-wrap">
+            {categories.length > 0 &&
+              categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryClick(category)}
+                  className={`text-gray-700 px-2 py-[2px] rounded-full font-mediium text-base border-[1px] border-gray-400 ${
+                    activeCategory === category
+                      ? 'bg-orange-500 text-white border-none'
+                      : ''
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+          </div>
+          {menuItems &&
+            fileredMenuItems(menuItems.subCategory).map((item) => (
+              <FoodAccordion
+                key={item.name}
+                title={item.name}
+                foodItems={item.foodItems}
+              />
+            ))}
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+        <div className="absolute bottom-3">
+          {cart.length > 0 ? (
+            <button
+              onClick={() => router.push('/cart')}
+              className="px-4 py-2 rounded-md bg-green-600 text-white shadow-md font-medium"
+            >
+              View Cart
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 rounded-md bg-black text-white shadow-md font-medium"
+            >
+              Call Waiter
+            </button>
+          )}
+        </div>
+      </section>
+      <WaiterModal isOpen={isModalOpen} onClose={setIsModalOpen} />
     </main>
-  )
+  );
 }
