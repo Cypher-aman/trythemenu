@@ -1,7 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { HiArrowSmallLeft } from 'react-icons/hi2';
 import { useAppSelector, useAppDispatch } from '@/redux/store';
 import {
   selectTotalPrice,
@@ -25,14 +23,10 @@ const CartPage = () => {
   };
 
   if (cart.length === 0) {
-    return (
-      <CartWrapper>
-        <div className="py-10">Cart is empty</div>
-      </CartWrapper>
-    );
+    return <div className="py-10">Cart is empty</div>;
   }
   return (
-    <CartWrapper>
+    <>
       <div className="w-full relative h-svh">
         <div className="flex  p-3 w-full flex-col items-start gap-2">
           <h3 className="text-gray-700 font-semibold">Items:</h3>
@@ -94,26 +88,7 @@ const CartPage = () => {
           </div>
         </div>
       </div>
-    </CartWrapper>
-  );
-};
-
-export const CartWrapper = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
-
-  return (
-    <main className="flex justify-center h-screen">
-      <section className="w-full gap-2 flex-col max-w-[400px] bg-white min-h-screen overflow-y-scroll hide-scrollbar flex justify-start items-center">
-        <div className="flex relative items-center gap-2 justify-center w-full bg-orange-500">
-          <HiArrowSmallLeft
-            onClick={() => router.back()}
-            className="text-white text-xl cursor-pointer absolute left-3 top-[50%] translate-y-[-50%]"
-          />
-          <h1 className="text-white py-4">Cart</h1>
-        </div>
-        {children}
-      </section>
-    </main>
+    </>
   );
 };
 
